@@ -6,7 +6,7 @@
 * 注意，這個服務只提供確認使用者身份和來源的機器，而且最好在同一個網路中執行。如果要跨 proxy 或是 NAT 等等環境，要確認是否支持 X-Forwarded-For (XFF) header
 * 使用者使用 Bearer token 從申請 JWT 的同一台機器發送 request 就可以通過認證
 * 把使用者認證跟授權的服務分開。回傳的認證資料中會帶有這個 token 的使用者 ID ，可以據此自己實做授權服務
-* 目前使用 apache jmeter 實測，每秒鐘可以承受 1000 個 requests
+* 目前使用 apache jmeter 實測，每秒鐘可以承受 1000 個 requests  
     (硬體配置 Intel(R) Xeon(R) CPU E5-4610 v2 @ 2.30GHz 8 cores + 16 GB RAM + 100GB storage + 10GbE)
 * 完全使用容器架構，並且只使用 dockerhub 上 official 的 image 建構系統
 * 使用 redis cluster + HAProxy 來實做一讀多寫的 HA 架構。以此為基礎建構 session server
@@ -14,6 +14,33 @@
 * 使用 PostgreSQL 儲存使用者的資料
 * 使用 alpine linux 編譯 JWTAuth 主程式
 * 設定好環境變數以後 sudo 執行 SetJWTAuth&#46;sh 就可以自動建構整個系統
+
+
+## 特別注意
+* 使用者管理員的密碼預設是 #JWTAuth1234# ，請自己修改。有兩種方式：
+1. 自己連上 PostgreSQL server (server domain name:25432) ，然後自己下 update 指令更新 UserMgr 的 密碼 hash ，計算 hash 的方式是
+```
+這裡要注意 pwhash 的產生方法。
+1). 先找到 JWTAuth 應用程式使用的 .env.template ，打開它。
+2). 找到 USER_PASS_SALT ，這就是要加在密碼後面的 salt 。
+3). pwhash = sha256(密碼 + USER_PASS_SALT)
+4). 預設密碼 #JWTAuth1234# ，請記得一定要修改。
+```
+
+2. 使用 webapi 更新帳號 UserMgr 的密碼。
+
+## webapi 介紹
+
+* user  
+/login: 使用者登入，傳入帳號密碼以後可以回傳 JWT ，如果重複的 login ，會回傳不同的 JWT ，但是 http status 會變成 201  
+/JwtValidation: JWT 驗證，如果通過驗證會回傳使用者的 UserID  
+/logout: 使用者登出，會刪除 session server 上的 session 。  
+* 使用者管理員  
+/AddOneUser: 供 UserMgr 新增"一位"使用者  
+/BatchAddUsers: 供 UserMgr 一次新增"一批"使用者  
+/GetUserData: 供 UserMgr 向 userauth database 查詢一個使用者  
+/UpdOneUser: 供 UserMgr 向 userauth database 更新一個新使用者。如果要更新使用者密碼也使用這個 webapi  
+/DeleteOneSession: 供 UserMgr 刪除 redis server 上的 session  
 
 ## 基本需求
 

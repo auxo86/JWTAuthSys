@@ -199,9 +199,9 @@ EXECUTE PROCEDURE users.proc_usersecret_audit();
 
 -- 插入天字第一號使用者資料 (第一欄的 id 要自己指定。)
 -- 這裡要注意 pwhash 的產生方法。
--- 1. 先找到 JWTAuth 應用程式使用的 .env ，打開它。
--- 2. 找到 StrSalt ，這就是要加在密碼前面的 salt 。
--- 3. pwhash = sha256(StrSalt + 密碼)
+-- 1. 先找到 JWTAuth 應用程式使用的 .env.template ，打開它。
+-- 2. 找到 USER_PASS_SALT ，這就是要加在密碼後面的 salt 。
+-- 3. pwhash = sha256(密碼 + USER_PASS_SALT)
 -- 4. 預設密碼 #JWTAuth1234# ，請記得一定要修改。
 insert into users.usersecret(id, categoryid, userid, username, pwhash, cancelflag, createopid, modifyopid,
                              createdatetime,
