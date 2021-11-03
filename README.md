@@ -1,4 +1,4 @@
-# JWTAuth [![doc](https://img.shields.io/badge/doc-80%-brightgreen)]
+# JWTAuth [![doc](https://img.shields.io/badge/doc-80%25-brightgreen)]
 
 ## 基本介紹
 
