@@ -19,29 +19,19 @@
 
     sudo usermod -aG docker jwtauth
 
-* 更改檔案擁有者
-
-    sudo chown jwtauth:jwtauth ./JwtAuthSys.tar.gz
-
-* 搬 JwtAuthSys.tar.gz 到  jwtauth 的家目錄
-
-    sudo mv ./JwtAuthSys.tar.gz /home/jwtauth/
-
 * 使用 jwtauth 身分執行以下指令
 
     su jwtauth
 
-* 解壓縮建立 JWTAuth 系統的檔案系統結構 tar 檔
-
-    tar -zvxf ./JwtAuthSys.tar.gz ./
-
 * 修改 ./JWTAuthSys/SetJWTAuth.sh ，把裡面的環境變數密碼區的設定改一下
 
     `# 設立四個 postgresql 密碼環境變數`  
-    PG_SUPER_PASS="#JWTAuth1234#"  
-    PG_ADMIN_PASS="#JWTAuth1234#"  
-    PG_OP_PASS="#JWTAuth1234#"  
-    PG_QRY_PASS="#JWTAuth1234#"  
+    ```
+    PG_SUPER_PASS="#JWTAuth1234#"
+    PG_ADMIN_PASS="#JWTAuth1234#"
+    PG_OP_PASS="#JWTAuth1234#"
+    PG_QRY_PASS="#JWTAuth1234#"
+    ```
 
     `# 設定 redis cluster 中會用到的密碼環境變數`  
     REDIS_OP_PASS="#JWTAuth1234#"  
