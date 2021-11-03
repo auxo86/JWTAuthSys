@@ -1,4 +1,4 @@
-# JWTAuth
+# JWTAuth [https://img.shields.io/badge/doc-80%-brightgreen]
 
 ## 基本介紹
 
@@ -32,15 +32,15 @@
 ## webapi 介紹
 
 * user  
-/login: 使用者登入，傳入帳號密碼以後可以回傳 JWT ，如果重複的 login ，會回傳不同的 JWT ，但是 http status 會變成 201  
-/JwtValidation: JWT 驗證，如果通過驗證會回傳使用者的 UserID  
-/logout: 使用者登出，會刪除 session server 上的 session 。  
+__/login__: 使用者登入，傳入帳號密碼以後可以回傳 JWT ，如果重複的 login ，會回傳不同的 JWT ，但是 http status 會變成 201
+__/JwtValidation__: JWT 驗證，如果通過驗證會回傳使用者的 UserID
+__/logout__: 使用者登出，會刪除 session server 上的 session 。
 * 使用者管理員  
-/AddOneUser: 供 UserMgr 新增"一位"使用者  
-/BatchAddUsers: 供 UserMgr 一次新增"一批"使用者  
-/GetUserData: 供 UserMgr 向 userauth database 查詢一個使用者  
-/UpdOneUser: 供 UserMgr 向 userauth database 更新一個新使用者。如果要更新使用者密碼也使用這個 webapi  
-/DeleteOneSession: 供 UserMgr 刪除 redis server 上的 session  
+__/AddOneUser__: 供 UserMgr 新增"一位"使用者
+__/BatchAddUsers__: 供 UserMgr 一次新增"一批"使用者
+__/GetUserData__: 供 UserMgr 向 userauth database 查詢一個使用者
+__/UpdOneUser__: 供 UserMgr 向 userauth database 更新一個新使用者。如果要更新使用者密碼也使用這個 webapi
+__/DeleteOneSession__: 供 UserMgr 刪除 redis server 上的 session
 
 ## 基本需求
 
