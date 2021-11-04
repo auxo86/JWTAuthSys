@@ -27,7 +27,7 @@ chmod 400 /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl
 # 設定 JWTAuth 安全參數
 JWT_SEC_KEY="696ceb369e628963ddd6e17ba4acc76c9a812d19fbfaad68d58581ca513e76e0"
 USER_PASS_SALT="ba541f1d5d01df17b01833f3255b722d540acd719bedc05af8091ac9d40e1f8e"
-JWT_AUTH_IP="1.2.3.4"
+JWT_AUTH_IP_OR_FQDN="1.2.3.4"
 JWT_AUTH_PORT="20001"
 
 # 設定 JWTAuth .env 秘密參數
@@ -37,7 +37,7 @@ sed -e 's/{PgQryPass}/'"$PG_QRY_PASS"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr
 sed -e 's/{PgOpPass}/'"$PG_OP_PASS"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/.env.template
 sed -e 's/{JwtSecKey}/'"$JWT_SEC_KEY"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/.env.template
 sed -e 's/{PassSalt}/'"$USER_PASS_SALT"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/.env.template
-sed -e 's/{AuthSvrIp}/'"$JWT_AUTH_IP"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/.env.template
+sed -e 's/{AuthSvrIp}/'"$JWT_AUTH_IP_OR_FQDN"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/.env.template
 sed -e 's/{AuthSvrPort}/'"$JWT_AUTH_PORT"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/.env.template
 
 # 產生 .env 設定檔
@@ -178,7 +178,7 @@ docker run -itd \
 docker run -itd --network JwtNet --name JwtAuthSvr -p $JWT_AUTH_PORT:8080 -v /home/jwtauth/JWTAuthSys/JWTAuthSvr:/app -w /app alpine:latest
 
 # 產生測試憑證
-sed -e 's/{IP}/'"$JWT_AUTH_IP"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ssl.conf
+sed -e 's/{IP}/'"$JWT_AUTH_IP_OR_FQDN"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ssl.conf
 openssl req -x509 -new -nodes -sha256 -utf8 -days 3650 -newkey rsa:2048 \
 	-keyout /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ForTest.key \
 	-out /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ForTest.crt \
