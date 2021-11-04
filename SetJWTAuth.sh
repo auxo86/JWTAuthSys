@@ -174,8 +174,8 @@ docker run -itd \
     --sysctl net.ipv4.ip_unprivileged_port_start=0 \
     haproxy:latest
 
-# 建立 JWTAuthSvr 容器
-docker run -itd --network JwtNet --name JwtAuthSvr -p 20001:8080 -v /home/jwtauth/JWTAuthSys/JWTAuthSvr:/app -w /app alpine:latest
+# 建立 JwtAuthSvr 容器
+docker run -itd --network JwtNet --name JwtAuthSvr -p $JWT_AUTH_PORT:8080 -v /home/jwtauth/JWTAuthSys/JWTAuthSvr:/app -w /app alpine:latest
 
 # 產生測試憑證
 sed -e 's/{IP}/'"$JWT_AUTH_IP"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ssl.conf
