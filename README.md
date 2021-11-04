@@ -6,7 +6,7 @@
 * 注意，這個服務只提供確認使用者身份和來源的機器，而且最好在同一個網路中執行。如果要跨 proxy 或是 NAT 等等環境，要確認是否支持 X-Forwarded-For (XFF) header
 * 使用者使用 Bearer token 從申請 JWT 的同一台機器發送 request 就可以通過認證
 * 把使用者認證跟授權的服務分開。回傳的認證資料中會帶有這個 token 的使用者 ID ，可以據此自己實做授權服務
-* 目前使用 apache jmeter 實測，每秒鐘可以承受 1000 個 requests  
+* 目前使用 [apache jmeter](https://jmeter.apache.org/) 實測，每秒鐘可以承受 1000 個 requests  
     (硬體配置 Intel(R) Xeon(R) CPU E5-4610 v2 @ 2.30GHz 8 cores + 16 GB RAM + 100GB storage + 10GbE)
 * 完全使用容器架構，並且只使用 dockerhub 上 official 的 image 建構系統
 * 使用 redis cluster + HAProxy 來實做一讀多寫的 HA 架構。以此為基礎建構 session server

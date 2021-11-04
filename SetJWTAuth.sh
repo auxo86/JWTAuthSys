@@ -185,8 +185,8 @@ openssl req -x509 -new -nodes -sha256 -utf8 -days 3650 -newkey rsa:2048 \
 	-extensions v3_req \
 	-config /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ssl.conf
 
-# 處理 alpine_env 容器信任自簽憑證
-docker exec -d JwtAuthSvr cat ./SSL/ForTest.crt >> /etc/ssl/certs/ca-certificates.crt
+# 處理 alpine 容器信任自簽憑證
+docker exec -d JwtAuthSvr cat /app/SSL/ForTest.crt >> /etc/ssl/certs/ca-certificates.crt
 
 # 再等容器建好
 sleep 5s
