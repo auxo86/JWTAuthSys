@@ -81,7 +81,7 @@ curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔
 
 * 使用 jwtauth 身分執行以下指令
     ```
-    su jwtauth
+    su jwtauth && cd ~
     ```
 
 * 修改 ./JWTAuthSys/SetJWTAuth.sh ，把裡面的環境變數密碼區的設定改一下
