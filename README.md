@@ -22,7 +22,8 @@
 假設有個 webapi A 提供服務，在 client 呼叫 A 時， client 應該在 http request 的 header 中攜帶申請來的 JWT ，當 A 收到呼叫以後，取出這個 JWT ，同時取得 http request 的 IP address ，然後重新建立封包，把 JWT 和 IP address (以 JSON 的形式) 傳送給 JWTAuth server ， JWTAuth 服務在驗證 JWT 和 ip address 過後會回傳使用者的 UserID ，於是收到回應的 A 可以根據這個 UserID 自己實做相對應的權限系統，決定應該賦予 client 什麼權限。
 
 ## 特別注意
-* 使用者管理員的密碼預設是 #JWTAuth1234# ，請自己修改。有兩種方式：
+使用者管理員的密碼預設是 #JWTAuth1234# ，請自己修改。有兩種方式：
+
 1. 自己連上 PostgreSQL server (server domain name:25432) ，然後自己下 update 指令更新 UserMgr 的 密碼 hash ，計算 hash 的方式是
 ```
 這裡要注意 pwhash 的產生方法。
