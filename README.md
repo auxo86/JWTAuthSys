@@ -15,6 +15,11 @@
 * 使用 alpine linux 編譯 JWTAuth 主程式
 * 設定好環境變數以後 sudo 執行 SetJWTAuth&#46;sh 就可以自動建構整個系統
 
+## 使用情境
+
+    現今在微服務的環境下，webapi 扮演著重要的角色。但是如何限制存取就變成了一個重要的問題。JWTAuth 實做了 JWT ，在內容中埋入了申請 JWT 時裝置的 IP 。當使用者 login 的時候會回傳 JWT ，同時會在 redis cluster 中產生一筆 session 紀錄。當 JWT 過期或是 session 過期，驗證會失效。當 JWT 中的 IP 跟使用 JWT 的裝置 IP 不一致的時候驗證也會失效。意思就是這個 JWT 不能跨裝置使用。
+    
+    假設有個 webapi A 提供服務，在 client 呼叫 A 時， client 應該在 http request 的 header 中攜帶申請來的 JWT ，當 A 收到呼叫以後，取出這個 JWT ，同時取得 http request 的 IP address ，然後重新建立封包，把 JWT 和 IP address (以 JSON 的形式) 傳送給 JWTAuth server ， JWTAuth 服務在驗證 JWT 和 ip address 過後會回傳使用者的 UserID ，於是收到回應的 A 可以根據這個 UserID 自己實做相對應的權限系統，決定應該賦予 client 什麼權限。
 
 ## 特別注意
 * 使用者管理員的密碼預設是 #JWTAuth1234# ，請自己修改。有兩種方式：
