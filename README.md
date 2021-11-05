@@ -42,6 +42,16 @@ __/GetUserData__: 供 UserMgr 向 userauth database 查詢一個使用者
 __/UpdOneUser__: 供 UserMgr 向 userauth database 更新一個新使用者。如果要更新使用者密碼也使用這個 webapi  
 __/DeleteOneSession__: 供 UserMgr 刪除 redis server 上的 session  
 
+    為了讓大家容易測試，特別附上了 jmeter 使用的[測試檔](https://github.com/auxo86/JWTAuthSys/blob/main/JWTAuthTest.jmx)。請特別注意，使用 __/login__ 取得 JWT 後，請放入各個測試 webapi 的 Bearer token 的位置。記得修改 webapi 的 ip 或是 FQDN ，否則會無法測試。  
+
+    請注意這個測試檔案中的各個 JSON 的範例，這個就是要呼叫 webapi 時 http request body 中要填入的 JSON 內容。  
+
+    當然不想用 jmeter 也是可以用 cURL 來測試。例如，如果我要 call __/AddOneUser__ ，可以這樣做：  
+
+    ```
+curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔克", "sPassword":"!TonyStark!" }' -H "Content-Type: application/json" -H "Authorization: Bearer ${JWT}" -X POST https://xxx.xxx.xxx.xxx:20001/AddOneUser
+    ```
+
 ## 基本需求
 
 * 安裝 docker 服務
