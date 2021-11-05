@@ -9,7 +9,7 @@
 * 目前使用 [apache jmeter](https://jmeter.apache.org/) 實測，每秒鐘可以承受 1000 個 requests  
     (硬體配置 Intel(R) Xeon(R) CPU E5-4610 v2 @ 2.30GHz 8 cores + 16 GB RAM + 100GB storage + 10GbE)
 * 完全使用容器架構，並且只使用 dockerhub 上 official 的 image 建構系統
-* 使用 redis cluster + HAProxy 來實做一讀多寫的 HA 架構。以此為基礎建構 session server
+* 使用 redis cluster + HAProxy 來實做一寫多讀的 HA 架構。以此為基礎建構 session server
 * 套用 redis 的 acl 機制做 redis 權限控管
 * 使用 PostgreSQL 儲存使用者的資料
 * 使用 alpine linux 編譯 JWTAuth 主程式
@@ -70,13 +70,19 @@ curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔
 ## 安裝指令
 
 * 建立 OS 系統的 jwtauth 帳號
-    ```sudo useradd -m jwtauth```
+    ```
+    sudo useradd -m jwtauth
+    ```
 
 * 給予 JWTAuth 帳號可以操作 docker 的權限
-    ```sudo usermod -aG docker jwtauth```
+    ```
+    sudo usermod -aG docker jwtauth
+    ```
 
 * 使用 jwtauth 身分執行以下指令
-    ```su jwtauth```
+    ```
+    su jwtauth
+    ```
 
 * 修改 ./JWTAuthSys/SetJWTAuth.sh ，把裡面的環境變數密碼區的設定改一下
     ```
