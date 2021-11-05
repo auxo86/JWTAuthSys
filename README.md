@@ -17,9 +17,9 @@
 
 ## 使用情境
 
-    現今在微服務的環境下，webapi 扮演著重要的角色。但是如何限制存取就變成了一個重要的問題。JWTAuth 實做了 JWT ，在內容中埋入了申請 JWT 時裝置的 IP 。當使用者 login 的時候會回傳 JWT ，同時會在 redis cluster 中產生一筆 session 紀錄。當 JWT 過期或是 session 過期，驗證會失效。當 JWT 中的 IP 跟使用 JWT 的裝置 IP 不一致的時候驗證也會失效。意思就是這個 JWT 不能跨裝置使用。
+現今在微服務的環境下，webapi 扮演著重要的角色。但是如何限制存取就變成了一個重要的問題。JWTAuth 實做了 JWT ，在內容中埋入了申請 JWT 時裝置的 IP 。當使用者 login 的時候會回傳 JWT ，同時會在 redis cluster 中產生一筆 session 紀錄。當 JWT 過期或是 session 過期，驗證會失效。當 JWT 中的 IP 跟使用 JWT 的裝置 IP 不一致的時候驗證也會失效。意思就是這個 JWT 不能跨裝置使用。
     
-    假設有個 webapi A 提供服務，在 client 呼叫 A 時， client 應該在 http request 的 header 中攜帶申請來的 JWT ，當 A 收到呼叫以後，取出這個 JWT ，同時取得 http request 的 IP address ，然後重新建立封包，把 JWT 和 IP address (以 JSON 的形式) 傳送給 JWTAuth server ， JWTAuth 服務在驗證 JWT 和 ip address 過後會回傳使用者的 UserID ，於是收到回應的 A 可以根據這個 UserID 自己實做相對應的權限系統，決定應該賦予 client 什麼權限。
+假設有個 webapi A 提供服務，在 client 呼叫 A 時， client 應該在 http request 的 header 中攜帶申請來的 JWT ，當 A 收到呼叫以後，取出這個 JWT ，同時取得 http request 的 IP address ，然後重新建立封包，把 JWT 和 IP address (以 JSON 的形式) 傳送給 JWTAuth server ， JWTAuth 服務在驗證 JWT 和 ip address 過後會回傳使用者的 UserID ，於是收到回應的 A 可以根據這個 UserID 自己實做相對應的權限系統，決定應該賦予 client 什麼權限。
 
 ## 特別注意
 * 使用者管理員的密碼預設是 #JWTAuth1234# ，請自己修改。有兩種方式：
@@ -47,15 +47,18 @@ __/GetUserData__: 供 UserMgr 向 userauth database 查詢一個使用者
 __/UpdOneUser__: 供 UserMgr 向 userauth database 更新一個新使用者。如果要更新使用者密碼也使用這個 webapi  
 __/DeleteOneSession__: 供 UserMgr 刪除 redis server 上的 session  
 
-    為了讓大家容易測試，特別附上了 jmeter 使用的[測試檔](https://github.com/auxo86/JWTAuthSys/blob/main/JWTAuthTest.jmx)。請特別注意，使用 __/login__ 取得 JWT 後，請放入各個測試 webapi 的 Bearer token 的位置。記得修改 webapi 的 ip 或是 FQDN ，否則會無法測試。  
+為了讓大家容易測試，特別附上了 jmeter 使用的[測試檔](https://github.com/auxo86/JWTAuthSys/blob/main/JWTAuthTest.jmx)。請特別注意，使用 __/login__ 取得 JWT 後，請放入各個測試 webapi 的 Bearer token 的位置。記得修改 webapi 的 ip 或是 FQDN ，否則會無法測試。  
 
-    請注意這個測試檔案中的各個 JSON 的範例，這個就是要呼叫 webapi 時 http request body 中要填入的 JSON 內容。  
+請注意這個測試檔案中的各個 JSON 的範例，這個就是要呼叫 webapi 時 http request body 中要填入的 JSON 內容。  
 
-    當然不想用 jmeter 也是可以用 cURL 來測試。例如，如果我要 call __/AddOneUser__ ，可以這樣做：  
+當然不想用 jmeter 也是可以用 cURL 來測試。例如，如果我要 call __/AddOneUser__ ，可以這樣做：  
 
-    ```
-curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔克", "sPassword":"!TonyStark!" }' -H "Content-Type: application/json" -H "Authorization: Bearer ${JWT}" -X POST https://xxx.xxx.xxx.xxx:20001/AddOneUser
-    ```
+```
+curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔克", "sPassword":"!TonyStark!" }' \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${JWT}" \
+    -X POST https://xxx.xxx.xxx.xxx:20001/AddOneUser
+```
 
 ## 基本需求
 
