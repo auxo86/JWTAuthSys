@@ -13,6 +13,9 @@ REDIS_REP_PASS="#JWTAuth1234#"
 REDIS_MASTER_AUTH_PASS="#JWTAuth1234#"
 HAPROXY_AUTH_PASS="#JWTAuth1234#"
 
+# 設定系統使用的時區
+SYS_TZONE="Asia/Taipei"
+
 # 設定 redis acl file 的密碼
 sed -e 's/{RedisOpPass}/'"$REDIS_OP_PASS"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl.template
 sed -e 's/{RedisReaderPass}/'"$REDIS_READER_PASS"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl.template
@@ -88,7 +91,8 @@ docker run -itd \
 sleep 10s
 
 # 修正資料庫時區
-sed -e 's/Etc\/UTC/Asia\/Taipei/g' -i /home/jwtauth/JWTAuthSys/ForPgUserAuth/postgresql.conf
+# sed -e 's/Etc\/UTC/Asia\/Taipei/g' -i /home/jwtauth/JWTAuthSys/ForPgUserAuth/postgresql.conf
+sed -e 's/Etc\/UTC/'"$SYS_TZONE"'/g' -i /home/jwtauth/JWTAuthSys/ForPgUserAuth/postgresql.conf
 
 # 把要執行的 SQL 複製到容器 binding 的目錄下
 cp /home/jwtauth/JWTAuthSys/*.sql /home/jwtauth/JWTAuthSys/ForPgUserAuth
@@ -175,7 +179,7 @@ docker run -itd \
     haproxy:latest
 
 # 建立 JwtAuthSvr 容器
-docker run -itd --network JwtNet --name JwtAuthSvr -p $JWT_AUTH_PORT:8080 -v /home/jwtauth/JWTAuthSys/JWTAuthSvr:/app -w /app alpine:latest
+docker run -itd --network JwtNet --name JwtAuthSvr --env SYS_TZONE=$SYS_TZONE -p $JWT_AUTH_PORT:8080 -v /home/jwtauth/JWTAuthSys/JWTAuthSvr:/app -w /app alpine:latest ./SetTZone.sh
 
 # 產生測試憑證
 sed -e 's/{IP}/'"$JWT_AUTH_IP_OR_FQDN"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ssl.conf
