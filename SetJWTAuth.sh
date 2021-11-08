@@ -13,6 +13,12 @@ REDIS_REP_PASS="#JWTAuth1234#"
 REDIS_MASTER_AUTH_PASS="#JWTAuth1234#"
 HAPROXY_AUTH_PASS="#JWTAuth1234#"
 
+# 設定 JWTAuth 安全參數
+JWT_SEC_KEY="696ceb369e628963ddd6e17ba4acc76c9a812d19fbfaad68d58581ca513e76e0"
+USER_PASS_SALT="ba541f1d5d01df17b01833f3255b722d540acd719bedc05af8091ac9d40e1f8e"
+JWT_AUTH_IP_OR_FQDN="1.2.3.4"
+JWT_AUTH_PORT="20001"
+
 # 設定系統使用的時區
 SYS_TZONE="Asia/Taipei"
 
@@ -26,12 +32,6 @@ sed -e 's/{HaproxyPass}/'"$HAPROXY_AUTH_PASS"'/g' -i /home/jwtauth/JWTAuthSys/Re
 # 產生 redis 使用的 users.acl
 cat /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl.template > /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl
 chmod 400 /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl
-
-# 設定 JWTAuth 安全參數
-JWT_SEC_KEY="696ceb369e628963ddd6e17ba4acc76c9a812d19fbfaad68d58581ca513e76e0"
-USER_PASS_SALT="ba541f1d5d01df17b01833f3255b722d540acd719bedc05af8091ac9d40e1f8e"
-JWT_AUTH_IP_OR_FQDN="1.2.3.4"
-JWT_AUTH_PORT="20001"
 
 # 設定 JWTAuth .env 秘密參數
 sed -e 's/{RedisOpPass}/'"$REDIS_OP_PASS"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/.env.template

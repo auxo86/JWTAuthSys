@@ -40,14 +40,23 @@
 ## webapi 介紹
 
 * user  
+
 __/login__: 使用者登入，傳入帳號密碼以後可以回傳 JWT ，如果重複的 login ，會回傳不同的 JWT ，但是 http status 會變成 201  
+
 __/JwtValidation__: JWT 驗證，如果通過驗證會回傳使用者的 UserID  
+
 __/logout__: 使用者登出，會刪除 session server 上的 session 。  
+
 * 使用者管理員  
+
 __/AddOneUser__: 供 UserMgr 新增"一位"使用者  
+
 __/BatchAddUsers__: 供 UserMgr 一次新增"一批"使用者  
+
 __/GetUserData__: 供 UserMgr 向 userauth database 查詢一個使用者  
+
 __/UpdOneUser__: 供 UserMgr 向 userauth database 更新一個新使用者。如果要更新使用者密碼也使用這個 webapi  
+
 __/DeleteOneSession__: 供 UserMgr 刪除 redis server 上的 session  
 
 為了讓大家容易測試，特別附上了 jmeter 使用的[測試檔](https://github.com/auxo86/JWTAuthSys/blob/main/JWTAuthTest.jmx)。請特別注意，使用 __/login__ 取得 JWT 後，請放入各個測試 webapi 的 Bearer token 的位置。記得修改 webapi 的 ip 或是 FQDN ，否則會無法測試。  
@@ -89,10 +98,10 @@ curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔
     su jwtauth && cd ~
     ```
 
-* 修改 ./JWTAuthSys/SetJWTAuth.sh ，把裡面的環境變數密碼區的設定改一下
+* 修改 ./JWTAuthSys/SetJWTAuth.sh ，把裡面的環境變數區的設定改一下
 
     ```
-    # 設立四個 postgresql 密碼環境變數`
+    # 設立四個 postgresql 密碼環境變數
     PG_SUPER_PASS="#JWTAuth1234#"
     PG_ADMIN_PASS="#JWTAuth1234#"
     PG_OP_PASS="#JWTAuth1234#"
@@ -100,21 +109,21 @@ curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔
 
     # 設定 redis cluster 中會用到的密碼環境變數
     REDIS_OP_PASS="#JWTAuth1234#"
-    REDIS_READER_PASS="#JWTAuth1234#"  
-    REDIS_REP_PASS="#JWTAuth1234#"  
-    REDIS_MASTER_AUTH_PASS="#JWTAuth1234#"  
+    REDIS_READER_PASS="#JWTAuth1234#"
+    REDIS_REP_PASS="#JWTAuth1234#"
+    REDIS_MASTER_AUTH_PASS="#JWTAuth1234#"
     HAPROXY_AUTH_PASS="#JWTAuth1234#"
 
-    # 設定 JWTAuth 安全參數（沒設後果自負）
-    # JWT_SEC_KEY 是驗證 JWT 有效性的 key ，一定要自己重設
-    # 使用者密碼會使用 USER_PASS_SALT 做 salted hash ，請自己重設
-    # IP 一定要記得改
+    # 設定 JWTAuth 安全參數
     JWT_SEC_KEY="696ceb369e628963ddd6e17ba4acc76c9a812d19fbfaad68d58581ca513e76e0"
-    USER_PASS_SALT="ba541f1d5d01df17b01833f3255b722d540acd719bedc05af8091ac9d40e1f8e"  
-    JWT_AUTH_IP="xx.xx.xx.xx"  
+    USER_PASS_SALT="ba541f1d5d01df17b01833f3255b722d540acd719bedc05af8091ac9d40e1f8e"
+    JWT_AUTH_IP_OR_FQDN="1.2.3.4"
     JWT_AUTH_PORT="20001"
+
+    # 設定系統使用的時區    
+    SYS_TZONE="Asia/Taipei"
     ```
-  
+
     __20001__ 是預設值，請依照 SetJWTAuth&#46;sh 中建立 JWTAuthSvr 容器開放的 port 決定這個值。
 
 * 修改 ./JWTAuthSys/JWTAuthSvr/.env.template
