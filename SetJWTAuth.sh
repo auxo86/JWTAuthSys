@@ -90,9 +90,9 @@ docker run -itd \
 # 等容器建好
 sleep 10s
 
-# 修正資料庫時區
+# 修正資料庫時區，因為時區變數有 / ，所以使用 @ 取代 /
 # sed -e 's/Etc\/UTC/Asia\/Taipei/g' -i /home/jwtauth/JWTAuthSys/ForPgUserAuth/postgresql.conf
-sed -e 's/Etc\/UTC/'"$SYS_TZONE"'/g' -i /home/jwtauth/JWTAuthSys/ForPgUserAuth/postgresql.conf
+sed -e 's@Etc\/UTC@'"$SYS_TZONE"'@g' -i /home/jwtauth/JWTAuthSys/ForPgUserAuth/postgresql.conf
 
 # 把要執行的 SQL 複製到容器 binding 的目錄下
 cp /home/jwtauth/JWTAuthSys/*.sql /home/jwtauth/JWTAuthSys/ForPgUserAuth
@@ -179,7 +179,10 @@ docker run -itd \
     haproxy:latest
 
 # 建立 JwtAuthSvr 容器
-docker run -itd --network JwtNet --name JwtAuthSvr --env SYS_TZONE=$SYS_TZONE -p $JWT_AUTH_PORT:8080 -v /home/jwtauth/JWTAuthSys/JWTAuthSvr:/app -w /app alpine:latest ./SetTZone.sh
+docker run -itd --network JwtNet --name JwtAuthSvr --env SYS_TZONE=$SYS_TZONE -p $JWT_AUTH_PORT:8080 -v /home/jwtauth/JWTAuthSys/JWTAuthSvr:/app -w /app alpine:latest
+
+# 修改 JwtAuthSvr 容器時區
+docker exec -it JwtAuthSvr ./SetTZone.sh
 
 # 產生測試憑證
 sed -e 's/{IP}/'"$JWT_AUTH_IP_OR_FQDN"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ssl.conf
