@@ -137,7 +137,22 @@ curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔
     雖然在這裡會暫時提供自簽的憑證，  
     但是如果你使用自簽的憑證，就要自己處理憑證信任問題。  
     這一點請特別注意。  
-    設定檔請依實際條件修改。
+    設定檔請依實際條件修改。  
+    
+    如果使用的是 __合法的憑證__ ，請在 &#46;/JWTAuthSys/SetJWTAuth&#46;sh 中註解以下幾行。  
+    
+    ```sh
+    # 產生測試憑證
+    sed -e 's/{IP}/'"$JWT_AUTH_IP_OR_FQDN"'/g' -i /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ssl.conf
+    openssl req -x509 -new -nodes -sha256 -utf8 -days 3650 -newkey rsa:2048 \
+        -keyout /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ForTest.key \
+        -out /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ForTest.crt \
+        -extensions v3_req \
+        -config /home/jwtauth/JWTAuthSys/JWTAuthSvr/SSL/ssl.conf
+
+    # 處理 alpine 容器信任自簽憑證
+    docker exec -d JwtAuthSvr sh -c "cat /app/SSL/ForTest.crt >> /etc/ssl/certs/ca-certificates.crt"
+    ```
 
 * 執行 SetJWTAuth&#46;sh
 
