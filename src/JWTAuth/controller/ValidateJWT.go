@@ -65,8 +65,7 @@ func HandlerValidateJWT(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// 把要更新 TTL 的 session key 值丟進去 ChannelQueueUpdTTL 慢慢更新
-		facilities.ChannelQueueUpdTTL <- sSessionKey
-		go facilities.UpdRedisKeyTTLNoReturn(facilities.ChannelQueueUpdTTL, customClaims.AuthInfo.JWTRedisTTL)
+		facilities.ChannelQueueUpdTTL <- model.RedisKeyWithTTL{RedisKey: sSessionKey, RedisTTL: customClaims.AuthInfo.JWTRedisTTL}
 
 		// 讀到 session key 以後 return http response
 		w.WriteHeader(http.StatusOK)

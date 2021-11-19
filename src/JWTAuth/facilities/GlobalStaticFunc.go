@@ -16,6 +16,10 @@ import (
 	"time"
 )
 
+func init() {
+	go UpdRedisKeyTTLNoReturn(ChannelQueueUpdTTL)
+}
+
 // RegJwtOnRedis 用於在 login 時向 Redis 註冊 JWT，回傳 boolStatus 和 err
 // 成功：如果 JWT 不存在則 SETNX 會成功
 // 失敗：如果 JWT 已存在會失敗
@@ -55,14 +59,16 @@ func GetSessionKey(sSessionKey string) error {
 
 // 執行延長 session TTL 做驗證的動作，但是這個版本沒有 return
 // 可以利用剩餘的 TTL 判斷最近存取時間
-func UpdRedisKeyTTLNoReturn(chanQueueUpdTTL chan string, customRedisTTL time.Duration) {
-	sSessionKey := <-chanQueueUpdTTL
-	// go-redis 需要的 context 設定
-	ctxbg := context.Background()
-	// 所有的人都必須更新 redis key 值的 TTL，即使是 TTL 為 -1 的 webapi，因為這樣我才能停用這個 JWT
-	bExdTTL := RedisClientWriteOpr.Expire(ctxbg, sSessionKey, customRedisTTL).Val()
-	if bExdTTL == false {
-		fmt.Println(fmt.Sprint(sSessionKey, " 無法展延 session 的 ttl，可能是伺服器主節點故障或是無 session 。"))
+func UpdRedisKeyTTLNoReturn(chanQueueUpdTTL chan model.RedisKeyWithTTL) {
+	for {
+		instSessionKeyWithTTL := <-chanQueueUpdTTL
+		// go-redis 需要的 context 設定
+		ctxbg := context.Background()
+		// 所有的人都必須更新 redis key 值的 TTL，即使是 TTL 為 -1 的 webapi，因為這樣我才能停用這個 JWT
+		bExdTTL := RedisClientWriteOpr.Expire(ctxbg, instSessionKeyWithTTL.RedisKey, instSessionKeyWithTTL.RedisTTL).Val()
+		if bExdTTL == false {
+			fmt.Println(fmt.Sprint(instSessionKeyWithTTL.RedisKey, " 無法展延 session 的 ttl，可能是伺服器主節點故障或是無 session 。"))
+		}
 	}
 }
 

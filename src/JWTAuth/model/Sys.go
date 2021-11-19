@@ -43,3 +43,8 @@ type SessionDataForOp struct {
 	StrUserID string `json:"sUserID"`
 	StrIP     string `json:"sIP"`
 }
+
+type RedisKeyWithTTL struct {
+	RedisKey string
+	RedisTTL time.Duration
+}
