@@ -16,8 +16,6 @@ var DefaultUserJwtExpireDuration time.Duration
 var DefaultAPIJwtExpireDuration time.Duration
 var DefaultAPIRedisTTLHours time.Duration
 var DefaultUsrRedisTTLHours time.Duration
-var MilliSecsQueueUpdTTLFullWait time.Duration
-var iQueueBuffSizeForUpdTTL int
 var ChannelQueueUpdTTL chan model.RedisKeyWithTTL
 
 // 全域連線池，有兩個，GlobalQryPool 和 GlobalOpPool
@@ -59,10 +57,7 @@ func init() {
 	DefaultUsrRedisTTLHours = time.Hour * time.Duration(defaultUsrRedisTTLHours)
 
 	// channelQueueUpdTTL 相關設定
-	iQueueBuffSizeForUpdTTL, _ = strconv.Atoi(MyEnv["iQueueBufferSizeForUpdateTTL"])
-	iWaitMilliSecsIfQueueChannelIsFull, _ := strconv.Atoi(MyEnv["WaitMilliSecsIfQueueChannelIsFull"])
-	MilliSecsQueueUpdTTLFullWait = time.Millisecond * time.Duration(iWaitMilliSecsIfQueueChannelIsFull)
-	ChannelQueueUpdTTL = make(chan model.RedisKeyWithTTL, iQueueBuffSizeForUpdTTL)
+	ChannelQueueUpdTTL = make(chan model.RedisKeyWithTTL)
 }
 
 // 因為在 high concurrency 情境下就算使用奈秒仍然會發生 key 值重複的問題。
