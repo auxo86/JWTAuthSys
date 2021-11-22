@@ -88,7 +88,7 @@ docker run -itd \
     postgres:latest
 	
 # 等容器建好
-while [ $(docker logs PgUserAuth | grep 'database system is ready to accept connections' | wc -l) == 0 ]
+while [ $(docker logs PgUserAuth | grep 'listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432' | wc -l) < 2 ]
 do
     sleep 1s
 done
