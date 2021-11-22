@@ -88,7 +88,10 @@ docker run -itd \
     postgres:latest
 	
 # 等容器建好
-sleep 10s
+while [ $(docker logs PgUserAuth | grep 'database system is ready to accept connections' | wc -l) == 0 ]
+do
+    sleep 1s
+done
 
 # 修正資料庫時區，因為時區變數有 / ，所以使用 @ 取代 /
 # sed -e 's/Etc\/UTC/Asia\/Taipei/g' -i /home/jwtauth/JWTAuthSys/ForPgUserAuth/postgresql.conf
@@ -135,6 +138,14 @@ docker run -itd \
     -v /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl:/etc/redis/users.acl \
     redis:latest \
     ./SetRedisConfFile.sh
+    
+# 取得 redis_acl_m 的 IP address
+MASTER_REDIS_NODE_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' redis_acl_m)
+
+# 置換 sentinels 設定檔中的 master node ip address
+sed -e 's/{RedisMasterIP}/'"$MASTER_REDIS_NODE_IP"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/st1/conf/sentinel.conf
+sed -e 's/{RedisMasterIP}/'"$MASTER_REDIS_NODE_IP"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/st2/conf/sentinel.conf
+sed -e 's/{RedisMasterIP}/'"$MASTER_REDIS_NODE_IP"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/st3/conf/sentinel.conf
 
 # 建立 sentinels    
 docker run -itd \
