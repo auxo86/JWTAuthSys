@@ -86,12 +86,14 @@ docker run -itd \
     -e PASS_QRY=$PG_QRY_PASS \
     -v /home/jwtauth/JWTAuthSys/ForPgUserAuth:/var/lib/postgresql/data \
     postgres:latest
-	
+
 # 等容器建好
-while [ $(docker logs PgUserAuth | grep 'listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432' | wc -l) < 2 ]
+while [ $(docker logs PgUserAuth | grep 'listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432' | wc -l) -lt 2 ]
 do
     sleep 1s
 done
+
+echo "PgUserAuth is up..."
 
 # 修正資料庫時區，因為時區變數有 / ，所以使用 @ 取代 /
 # sed -e 's/Etc\/UTC/Asia\/Taipei/g' -i /home/jwtauth/JWTAuthSys/ForPgUserAuth/postgresql.conf
