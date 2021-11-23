@@ -22,6 +22,12 @@ JWT_AUTH_PORT="20001"
 # 設定系統使用的時區
 SYS_TZONE="Asia/Taipei"
 
+# 設定 replica nodes 的數目
+REPLICA_NUM=10
+
+# 設定 sentinel nodes 的數目
+SENTINEL_NUM=5
+
 # 設定 redis acl file 的密碼
 sed -e 's/{RedisOpPass}/'"$REDIS_OP_PASS"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl.template
 sed -e 's/{RedisReaderPass}/'"$REDIS_READER_PASS"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl.template
@@ -121,62 +127,46 @@ docker run -itd \
     redis:latest \
     ./SetRedisConfFile.sh
 
-docker run -itd \
-    --network RedisACLNet \
-    --name redis_acl_s1 \
-    --env REDIS_REP_PASS=$REDIS_REP_PASS \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/s1/conf:/usr/local/etc/redis \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/s1:/data \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl:/etc/redis/users.acl \
-    redis:latest \
-    ./SetRedisConfFile.sh
-	
-docker run -itd \
-    --network RedisACLNet \
-    --name redis_acl_s2 \
-    --env REDIS_REP_PASS=$REDIS_REP_PASS \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/s2/conf:/usr/local/etc/redis \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/s2:/data \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl:/etc/redis/users.acl \
-    redis:latest \
-    ./SetRedisConfFile.sh
+for i in $(seq 1 $REPLICA_NUM);
+do
+    cp -R /home/jwtauth/JWTAuthSys/RedisACLCluster/s_template /home/jwtauth/JWTAuthSys/RedisACLCluster/s$i
+    docker run -itd \
+        --network RedisACLNet \
+        --name redis_acl_s$i \
+        --env REDIS_REP_PASS=$REDIS_REP_PASS \
+        -v /home/jwtauth/JWTAuthSys/RedisACLCluster/s$i/conf:/usr/local/etc/redis \
+        -v /home/jwtauth/JWTAuthSys/RedisACLCluster/s$i:/data \
+        -v /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl:/etc/redis/users.acl \
+        redis:latest \
+        ./SetRedisConfFile.sh
+    sed -e '/#InsertReplicasAbove/i \\tserver redis_acl_s'"$i"' redis_acl_s'"$i"':6379 maxconn 1024 check inter 1s' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/haproxy/conf/haproxy.cfg
+done
+
+sed -e 's/#InsertReplicasAbove//g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/haproxy/conf/haproxy.cfg
+
+echo "Replica nodes are up..."
     
 # 取得 redis_acl_m 的 IP address
 MASTER_REDIS_NODE_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' redis_acl_m)
 
-# 置換 sentinels 設定檔中的 master node ip address
-sed -e 's/{RedisMasterIP}/'"$MASTER_REDIS_NODE_IP"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/st1/conf/sentinel.conf
-sed -e 's/{RedisMasterIP}/'"$MASTER_REDIS_NODE_IP"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/st2/conf/sentinel.conf
-sed -e 's/{RedisMasterIP}/'"$MASTER_REDIS_NODE_IP"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/st3/conf/sentinel.conf
+for i in $(seq 1 $SENTINEL_NUM);
+do
+    cp -R /home/jwtauth/JWTAuthSys/RedisACLCluster/st_template /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i
+    # 置換 sentinels 設定檔中的 master node ip address
+    sed -e 's/{RedisMasterIP}/'"$MASTER_REDIS_NODE_IP"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i/conf/sentinel.conf
+    # 建立 sentinels    
+    docker run -itd \
+        --network RedisACLNet \
+        --name redis_acl_st$i \
+        --env REDIS_MASTER_AUTH_PASS=$REDIS_MASTER_AUTH_PASS \
+        -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i/conf:/usr/local/etc/redis \
+        -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i:/data \
+        redis:latest \
+        ./SetSentinelConfFile.sh
+done
 
-# 建立 sentinels    
-docker run -itd \
-    --network RedisACLNet \
-    --name redis_acl_st1 \
-    --env REDIS_MASTER_AUTH_PASS=$REDIS_MASTER_AUTH_PASS \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st1/conf:/usr/local/etc/redis \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st1:/data \
-    redis:latest \
-    ./SetSentinelConfFile.sh
+echo "Sentinel nodes are up..."
 
-docker run -itd \
-    --network RedisACLNet \
-    --name redis_acl_st2 \
-    --env REDIS_MASTER_AUTH_PASS=$REDIS_MASTER_AUTH_PASS \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st2/conf:/usr/local/etc/redis \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st2:/data \
-    redis:latest \
-    ./SetSentinelConfFile.sh
-	
-docker run -itd \
-    --network RedisACLNet \
-    --name redis_acl_st3 \
-    --env REDIS_MASTER_AUTH_PASS=$REDIS_MASTER_AUTH_PASS \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st3/conf:/usr/local/etc/redis \
-    -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st3:/data \
-    redis:latest \
-    ./SetSentinelConfFile.sh
-	
 # 再等容器建好
 sleep 10s
 
@@ -191,8 +181,12 @@ docker run -itd \
     --sysctl net.ipv4.ip_unprivileged_port_start=0 \
     haproxy:latest
 
+echo "HAProxy node are up..."    
+
 # 建立 JwtAuthSvr 容器
 docker run -itd --network JwtNet --name JwtAuthSvr --env SYS_TZONE=$SYS_TZONE -p $JWT_AUTH_PORT:8080 -v /home/jwtauth/JWTAuthSys/JWTAuthSvr:/app -w /app alpine:latest
+
+echo "JwtAuthSvr node are up..." 
 
 # 修改 JwtAuthSvr 容器時區
 docker exec -it JwtAuthSvr ./SetTZone.sh

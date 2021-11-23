@@ -86,10 +86,16 @@ curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔
     sudo useradd -m jwtauth
     ```
 
-* 給予 JWTAuth 帳號可以操作 docker 的權限
+* 給予 jwtauth 帳號可以操作 docker 的權限
 
     ```
     sudo usermod -aG docker jwtauth
+    ```
+
+* 給予 jwtauth 帳號可以操作 sudo 的權限
+
+    ```
+    sudo usermod -aG sudo jwtauth
     ```
 
 * 使用 jwtauth 身分執行以下指令
@@ -120,8 +126,14 @@ curl -k -d '{ "iUserCatID":1, "sUserID":"TonyStark", "sUserName":"東尼·史塔
     JWT_AUTH_IP_OR_FQDN="1.2.3.4"
     JWT_AUTH_PORT="20001"
 
-    # 設定系統使用的時區    
+    # 設定系統使用的時區
     SYS_TZONE="Asia/Taipei"
+
+    # 設定 replica nodes 的數目
+    REPLICA_NUM=10
+
+    # 設定 sentinel nodes 的數目
+    SENTINEL_NUM=5
     ```
 
     __20001__ 是預設值，請依照 SetJWTAuth&#46;sh 中建立 JWTAuthSvr 容器開放的 port 決定這個值。
