@@ -129,7 +129,7 @@ docker run -itd \
 
 for i in $(seq 1 $REPLICA_NUM);
 do
-    cp -R /home/jwtauth/JWTAuthSys/RedisACLCluster/s_template /home/jwtauth/JWTAuthSys/RedisACLCluster/s$i
+    runuser -u jwtauth -- cp -R /home/jwtauth/JWTAuthSys/RedisACLCluster/s_template /home/jwtauth/JWTAuthSys/RedisACLCluster/s$i
     docker run -itd \
         --network RedisACLNet \
         --name redis_acl_s$i \
@@ -151,7 +151,7 @@ MASTER_REDIS_NODE_IP=$(docker inspect --format='{{range .NetworkSettings.Network
 
 for i in $(seq 1 $SENTINEL_NUM);
 do
-    cp -R /home/jwtauth/JWTAuthSys/RedisACLCluster/st_template /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i
+    runuser -u jwtauth -- cp -R /home/jwtauth/JWTAuthSys/RedisACLCluster/st_template /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i
     # 置換 sentinels 設定檔中的 master node ip address
     sed -e 's/{RedisMasterIP}/'"$MASTER_REDIS_NODE_IP"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i/conf/sentinel.conf
     # 建立 sentinels    
