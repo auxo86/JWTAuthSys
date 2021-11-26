@@ -162,7 +162,7 @@ do
         --network RedisACLNet \
         --name redis_acl_st$i \
         --env REDIS_MASTER_AUTH_PASS=$REDIS_MASTER_AUTH_PASS \
-        --env QUORUM_NUM=$ST_QUORUM_NUM
+        --env QUORUM_NUM=$ST_QUORUM_NUM \
         -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i/conf:/usr/local/etc/redis \
         -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i:/data \
         redis:latest \
