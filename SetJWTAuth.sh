@@ -56,7 +56,7 @@ chmod 400 /home/jwtauth/JWTAuthSys/JWTAuthSvr/.env
 # 如果是外網，可以使用 docker pull 取得官方的 images ，然後需要對 alpine linux 做 WORKDIR 的設定，然後重新 commit 成 alpine_env:latest 。
 docker pull postgres
 docker pull redis
-docker pull haproxy:2.4.8
+docker pull haproxy:latest
 docker pull alpine
 
 # 抓取 GO 編譯環境
@@ -179,7 +179,9 @@ docker run -itd \
     --env REDISOBSERVER=haproxy \
     --env REDISPASS=$HAPROXY_AUTH_PASS \
     --sysctl net.ipv4.ip_unprivileged_port_start=0 \
-    haproxy:2.4.8
+    haproxy:latest bash
+    
+docker exec -d -u haproxy RedisACLHAProxy haproxy -f /usr/local/etc/haproxy/haproxy.cfg
 
 echo "HAProxy node are up..."    
 
