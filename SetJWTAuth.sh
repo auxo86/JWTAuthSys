@@ -25,8 +25,11 @@ SYS_TZONE="Asia/Taipei"
 # 設定 replica nodes 的數目
 REPLICA_NUM=10
 
-# 設定 sentinel nodes 的數目
+# 設定 sentinel nodes 的數目，必須是奇數
 SENTINEL_NUM=5
+
+# 設定 sentinel quorum 的數目為總 sentinels 數目的一半以上
+ST_QUORUM_NUM=$(echo "($SENTINEL_NUM + 1)/2" | bc)
 
 # 設定 redis acl file 的密碼
 sed -e 's/{RedisOpPass}/'"$REDIS_OP_PASS"'/g' -i /home/jwtauth/JWTAuthSys/RedisACLCluster/users.acl.template
@@ -159,6 +162,7 @@ do
         --network RedisACLNet \
         --name redis_acl_st$i \
         --env REDIS_MASTER_AUTH_PASS=$REDIS_MASTER_AUTH_PASS \
+        --env QUORUM_NUM=$ST_QUORUM_NUM
         -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i/conf:/usr/local/etc/redis \
         -v /home/jwtauth/JWTAuthSys/RedisACLCluster/st$i:/data \
         redis:latest \
