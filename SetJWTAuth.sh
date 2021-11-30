@@ -23,7 +23,7 @@ JWT_AUTH_PORT="20001"
 SYS_TZONE="Asia/Taipei"
 
 # 設定 replica nodes 的數目
-REPLICA_NUM=10
+REPLICA_NUM=3
 
 # 設定 sentinel nodes 的數目，必須是奇數
 SENTINEL_NUM=5
