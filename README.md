@@ -35,7 +35,7 @@
 4). 預設密碼 #JWTAuth1234# ，請記得一定要修改。
 ```
 
-1. 使用 webapi 更新帳號 UserMgr 的密碼。
+2. 使用 webapi 更新帳號 UserMgr 的密碼。
 
 ## webapi 介紹
 
