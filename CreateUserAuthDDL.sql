@@ -206,7 +206,7 @@ EXECUTE PROCEDURE users.proc_usersecret_audit();
 insert into users.usersecret(id, categoryid, userid, username, pwhash, cancelflag, createopid, modifyopid,
                              createdatetime,
                              modifydatetime)
-values (0, -1, 'UserMgr', '使用者管理員', '6286715cbaffe38167b89a52e8d0af5d80ce1d1a7deb614796cf538e97fbfe6f', 0, 'UserMgr', 'UserMgr', now(), now());
+values (0, -1, 'UserMgr', '使用者管理員', '$2a$10$PHSBT9M6d32dg550QhdOg.IuH8uOlOafte3peadd8KPF56Kdo1K7y', 0, 'UserMgr', 'UserMgr', now(), now());
 
 -- 這時候才可以建立表格間的 createopid, modifyopid FK
 ALTER TABLE users.usercategory

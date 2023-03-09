@@ -3,10 +3,11 @@ package controller
 import (
 	"JWTAuth/facilities"
 	"JWTAuth/model"
-	"encoding/json"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
-	"net/http"
+	"github.com/cristalhq/jwt/v5"
+	"github.com/goccy/go-json"
+	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
@@ -16,50 +17,43 @@ import (
 // 然後開始塞客製化的 claims
 // 裡面有標準的內容有 iat 和 exp
 // 客製化的內容有
-//		RowID: 使用者代碼（數字）
-// 		JWTRegTimeInNanoSecWithCollisionCnt: JWT 登錄到 Redis 的時間 ( 使用 unix 奈秒時間戳 ),
-//		AllowedClientIP: 送來的封包的 IP。 如果伺服程式位在 NAT 或是代理後面，就會沒法抓到正確的 IP，NAT 或是代理伺服器會改寫封包，所以會遺失原本的 IP
-//		JWTRedisTTL: redis 中紀錄的有效時間（Time To Live, 可以自定義, 是 int64 nanosecond count 1 second = 1 000 000 000 nanoseconds）
+//
+//	RowID: 使用者代碼（數字）
+//	JWTRegTimeInNanoSecWithCollisionCnt: JWT 登錄到 Redis 的時間 ( 使用 unix 奈秒時間戳 ),
+//	AllowedClientIP: 送來的封包的 IP。 如果伺服程式位在 NAT 或是代理後面，就會沒法抓到正確的 IP，NAT 或是代理伺服器會改寫封包，所以會遺失原本的 IP
+//	JWTRedisTTL: redis 中紀錄的有效時間（Time To Live, 可以自定義, 是 int64 nanosecond count 1 second = 1 000 000 000 nanoseconds）
+//
 // 然後加了 secret 就簽好了
 // 感覺上沒有塞什麼東西
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	var userInfo model.UsrAuthData
+func LoginHandler(c *fiber.Ctx) error {
+	userInfo := new(model.UsrAuthData)
 	var errGetIP error
 
 	// 把 request 的 Body (JSON) parse 出來以後塞到 userInfo 中
-	decodeErr := json.NewDecoder(r.Body).Decode(&userInfo)
-
-	// 資料 parse 有問題就 return
-	if decodeErr != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, "HTTP: Error while parsing request body.")
-		return
+	// 同時資料 parse 有問題就 return
+	if decodeErr := c.BodyParser(userInfo); decodeErr != nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "HTTP: Error while parsing request body. "+decodeErr.Error())
 	}
 
 	// 取得 client 的 IP address ，如果取不到 userInfo.AllowedUserIP 就是 ""
-	userInfo.AllowedUserIP, errGetIP = facilities.GetClientOnlyIP(r)
+	userInfo.AllowedUserIP, errGetIP = facilities.GetClientOnlyIP(c.Context())
 	if errGetIP != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, "權限問題：無法取得 IP 位置。")
-		return
+		return fiber.NewError(fiber.StatusUnauthorized, "權限問題：無法取得 IP 位置。 "+errGetIP.Error())
 	}
 
-	DBUserPwdHash, getDBPwdHashErr := facilities.GetUsrPwdHashFromDB(userInfo.UserID)
+	DBUserPwdHash, errGetDBPwdHash := facilities.GetUsrPwdHashFromDB(userInfo.UserID)
 
 	// 無法正確取得密碼，正常密碼的 hash 應該不會是空白
-	if getDBPwdHashErr != nil || DBUserPwdHash == "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, "權限問題：使用者資料庫認證資料錯誤，不是正確的使用者。")
-		return
+	if errGetDBPwdHash != nil || DBUserPwdHash == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "權限問題：使用者資料庫認證資料錯誤，不是正確的使用者。")
 	}
 
-	strUserPwSaltedHash := facilities.CalHashOfSaltedPw(userInfo.Pw)
+	// 改進加密算法的演算機制為 bcrypt
+	// 密碼有問題就 return
+	errChkPass := bcrypt.CompareHashAndPassword([]byte(DBUserPwdHash), []byte(userInfo.Pw))
 
-	// 密碼有問題也 return
-	if strUserPwSaltedHash != DBUserPwdHash {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, "權限問題：認證錯誤。")
-		return
+	if errChkPass != nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "權限問題：認證錯誤。 ")
 	}
 
 	// 判斷是否為 API ( UserCategoryID == 0 )
@@ -73,20 +67,33 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// --------------- 底下是製造要回應的 token -----------------
-	// 在這裡指定演算法並建立 token
-	token := jwt.New(jwt.SigningMethodHS256)
+	// 建立 token
+	var token jwt.Token
 	// 從這裡開始固定"現在時間"
 	timeNow := time.Now()
 	// Unix 奈秒時間戳 + 碰撞序號 (為了增加效率，算一次可以用很多地方，所以先算起來)
 	sTimeNowWithCollisionCnt := fmt.Sprint(timeNow.UnixNano(), ".", facilities.CollisionCnt)
 	// 在註冊的時候產生 jwt 回傳，
 	// 裡面的 TTL 就已經根據是那一種身份(例如是不是 webapi)做了相對應的配置。
-	response := facilities.GenerateCustomTokenClaimData(w, token, timeNow, sTimeNowWithCollisionCnt, userInfo)
+	responseToken, errGenCustomTokenClaimData := facilities.GenerateCustomTokenClaimData(&token, timeNow, sTimeNowWithCollisionCnt, *userInfo)
+
+	if errGenCustomTokenClaimData != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, errGenCustomTokenClaimData.Error())
+	}
 
 	// 在 redis 的 session 紀錄前面加上 UserID
-	_, redisRegErr := facilities.RegJwtOnRedis(
+	_, redisRegErr := facilities.RegSessionOnRedis(
 		fmt.Sprint(userInfo.UserID, ":", userInfo.AllowedUserIP),
 		userInfo.JWTRedisTTL)
+
+	// 把要回傳的內容寫到 http responseToken body 中。
+	bsToken, errToJson := json.Marshal(responseToken)
+	if errToJson != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "JSON 相關：無法成功轉換 JSON, "+errToJson.Error())
+	}
+
+	// 設置 header 的 ContentType 為 "application/json; charset=utf-8"
+	c.Response().Header.SetContentType("application/json; charset=utf-8")
 
 	// 如果 session 已經存在在這裡判斷
 	// 表示應該 key 重複了 ( redisRegErr.Error() == "SessionExist" )
@@ -94,18 +101,15 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	// http status code 回傳為 201 (正常的 login 是回傳 200)
 	if redisRegErr != nil && redisRegErr.Error() == "SessionExist" {
 		// 注意，這裡回傳的是 201
-		w.WriteHeader(http.StatusCreated)
-		// 把結構經由序列化寫到 body 中。
-		facilities.JsonResponse(response, w)
-		return
+		return c.Status(fiber.StatusCreated).Send(bsToken)
 	}
 	// 表示真的出錯了
 	if redisRegErr != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, "session 問題："+redisRegErr.Error())
-		return
+		return fiber.NewError(fiber.StatusInternalServerError, "session 問題："+redisRegErr.Error())
 	}
 
-	// 把結構經由序列化寫到 body 中。
-	facilities.JsonResponse(response, w)
+	// 更新 DictAllSessionKeysOnRedis ( redis session keys cache )
+	go facilities.UpdDictSessionKeys(false)
+
+	return c.Status(fiber.StatusOK).Send(bsToken)
 }

@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"time"
@@ -75,9 +76,15 @@ func InsertPgUserAuthDB(ctxbg context.Context, tx pgx.Tx, sCreateOpID string, ob
 
 	// 先取得當地現在時間
 	tNowLocal = time.Now().Local()
-	// 塞資料進 DB，這裡要注意，塞密碼的時候要轉換成 SHA256 hash 。
+	// 塞資料進 DB，這裡要注意，塞密碼的時候要轉換成 bcrypt hash 。
+	// 計算 user pass salted hash
+	byteArrayPwSaltedHash, errCalHash := facilities.CalHashOfSaltedPw(objUserWillBeAdded.Password)
+	if errCalHash != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "系統錯誤：無法正確計算 pass hash, "+errCalHash.Error())
+	}
+
 	_, errInsertUser := tx.Exec(ctxbg, sSQLInsertUsr,
-		objUserWillBeAdded.UserCategoryID, objUserWillBeAdded.UserID, objUserWillBeAdded.UserName, facilities.CalHashOfSaltedPw(objUserWillBeAdded.Password),
+		objUserWillBeAdded.UserCategoryID, objUserWillBeAdded.UserID, objUserWillBeAdded.UserName, string(byteArrayPwSaltedHash),
 		0, sCreateOpID, sCreateOpID, tNowLocal, tNowLocal)
 	if errInsertUser != nil {
 		return errInsertUser
@@ -106,11 +113,17 @@ func BatchInsertPgUsersAuthDB(ctxbg context.Context, tx pgx.Tx, sCreateOpID stri
 	tNowLocal := time.Now().Local()
 	// 轉換 sliceUsersWillBeAdded 成 sliceNewUserRows
 	for _, rowUser := range sliceUsersWillBeAdded {
+		// 計算 user pass salted hash
+		byteArrayPwSaltedHash, errCalHash := facilities.CalHashOfSaltedPw(rowUser.Password)
+		if errCalHash != nil {
+			return 0, fiber.NewError(fiber.StatusInternalServerError, "系統錯誤：無法正確計算 pass hash, "+errCalHash.Error())
+		}
+
 		sliceNewUserRows = append(sliceNewUserRows, []interface{}{
 			rowUser.UserCategoryID,
 			rowUser.UserID,
 			rowUser.UserName,
-			facilities.CalHashOfSaltedPw(rowUser.Password),
+			string(byteArrayPwSaltedHash),
 			0,
 			sCreateOpID,
 			sCreateOpID,
@@ -119,7 +132,7 @@ func BatchInsertPgUsersAuthDB(ctxbg context.Context, tx pgx.Tx, sCreateOpID stri
 		})
 	}
 
-	// 塞資料進 DB，這裡要注意，塞密碼的時候要轉換成 SHA256 hash 。
+	// 塞資料進 DB，這裡要注意，塞密碼的時候要轉換成 bcrypt hash 。
 	iCopyCnt, errBatchInsert := tx.CopyFrom(
 		ctxbg,
 		pgx.Identifier{"users", "usersecret"},

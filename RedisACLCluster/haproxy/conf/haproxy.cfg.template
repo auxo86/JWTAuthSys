@@ -1,0 +1,64 @@
+global
+	daemon
+	maxconn 1000
+
+
+defaults
+	mode tcp
+	timeout connect 5000ms
+	timeout client 0ms
+	timeout server 0ms
+
+
+frontend http
+	bind :20010
+	default_backend stats
+
+
+backend stats
+	mode http
+	stats enable
+
+	stats enable
+	stats uri /
+	stats refresh 1s
+	stats show-legends
+	stats admin if TRUE
+
+
+frontend redis-read
+	bind *:20011
+	default_backend redis-replica
+
+
+frontend redis-write
+	bind *:20012
+	default_backend redis-master
+
+
+backend redis-master
+	mode tcp
+	balance first
+	option tcp-check
+
+	tcp-check send AUTH\ "${REDISOBSERVER} ${REDISPASS}"\r\n
+	tcp-check expect string OK
+	tcp-check send info\ replication\r\n
+	tcp-check expect string role:master
+
+	server redis_acl_m redis_acl_m:6379 maxconn 1024 check inter 1s
+	#InsertReplicasAbove
+
+
+backend redis-replica
+	mode tcp
+	balance roundrobin
+	option tcp-check
+
+	tcp-check send AUTH\ "${REDISOBSERVER} ${REDISPASS}"\r\n                                                  
+	tcp-check expect string OK
+	tcp-check send PING\r\n
+	tcp-check expect string +PONG
+
+	server redis_acl_m redis_acl_m:6379 maxconn 1024 check inter 1s
+	#InsertReplicasAbove

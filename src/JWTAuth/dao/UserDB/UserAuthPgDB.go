@@ -6,10 +6,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"os"
 	"strconv"
 )
 
 // 得到 Database 的連線池，並指派給 GlobalQryPool
+// 如果連線失敗會中斷並且傳回錯誤訊息
 func init() {
 	sPgSQLHost := facilities.MyEnv["PgSQLHost"]
 	iPgSQLPort, _ := strconv.Atoi(facilities.MyEnv["PgSQLPort"])
@@ -29,7 +31,8 @@ func init() {
 	for _, poolData := range sliceAllPools {
 		errInitPool := InitPools(poolData)
 		if errInitPool != nil {
-			panic(errInitPool)
+			fmt.Println("無法連線到 UserPgDB: 請檢查資料庫及其連線情況。")
+			os.Exit(1)
 		}
 	}
 

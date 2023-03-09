@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"github.com/cristalhq/jwt/v5"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type AuthInfo struct {
 
 // CustomClaims 客製化的 Claims
 type CustomClaims struct {
-	*jwt.StandardClaims
+	*jwt.RegisteredClaims
 	TokenType string
 	*AuthInfo
 }

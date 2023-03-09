@@ -1,6 +1,6 @@
 user default off
-user jwtOpr on >{RedisOpPass} ~*:*.*.*.* +set +expire +unlink
-user jwtReader on >{RedisReaderPass} ~*:*.*.*.* +get
+user jwtOpr on >{RedisOpPass} ~*:*.*.*.* +set +expire +unlink +ping
+user jwtReader on >{RedisReaderPass} ~*:*.*.*.* +scan +ping
 user RedisReplicator on >{RedisRepPass} +psync +replconf +ping
 user RedisSentinel on >{RedisSentPass} &* +multi +slaveof +ping +exec +subscribe +config|rewrite +role +publish +info +client|setname +client|kill +script|kill
 user haproxy on >{HaproxyPass} +info +ping
