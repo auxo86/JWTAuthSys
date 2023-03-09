@@ -32,8 +32,8 @@
 1). 使用 "golang.org/x/crypto/bcrypt"
 2). // 先設定密碼
     password := []byte("#JWTAuth1234#")
-		// 生成隨機 salt 值並使用默認的 cost 值進行 hash
-		hash, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+    // 生成隨機 salt 值並使用默認的 cost 值進行 hash
+    hash, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 3). 預設密碼 #JWTAuth1234# ，請記得一定要修改。
 ```
 
