@@ -50,7 +50,7 @@ chmod 400 "$FILE_REDIS_ACL"
 
 # 刪除之前的 JWTAuth 使用的 .env 並且複製模板產生 .env
 rm -f "$FILE_JWTAUTH_ENV"
-cat "./RedisACLCluster/users.acl.template" > "$FILE_JWTAUTH_ENV"
+cat "./JWTAuthSvr/.env.template" > "$FILE_JWTAUTH_ENV"
 
 # 設定 JWTAuth .env 秘密參數
 sed -e 's/{RedisOpPass}/'"$REDIS_OP_PASS"'/g' -i "$FILE_JWTAUTH_ENV"
