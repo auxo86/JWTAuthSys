@@ -81,7 +81,7 @@ mv ./src/JWTAuth/JWTAuth ./JWTAuthSvr/
 
 # 建立 GO 執行環境的映像檔
 # 修改 alpine image ，增加 WORKDIR 然後重新 build 成新的 image alpine_env:latest
-# mkdir ./tmp && echo -e "FROM alpine\nRUN mkdir /app\nWORKDIR /app" | docker build -t alpine_env:latest -f- ./tmp && rm -rf ./tmp && docker rmi alpine:latest
+mkdir ./tmp && echo -e "FROM alpine\nRUN mkdir /app\nWORKDIR /app" | docker build -t alpine_env:latest -f- ./tmp && rm -rf ./tmp && docker rmi alpine:latest
 
 # 建立網路
 docker network create JwtNet
@@ -205,7 +205,7 @@ docker exec -d -u haproxy RedisACLHAProxy haproxy -f /usr/local/etc/haproxy/hapr
 echo "HAProxy node are up..."    
 
 # 建立 JwtAuthSvr 容器
-docker run -itd --network JwtNet --name JwtAuthSvr --env SYS_TZONE=$SYS_TZONE -p $JWT_AUTH_PORT:8080 -v ./JWTAuthSvr:/app -w /app alpine:latest
+docker run -itd --network JwtNet --name JwtAuthSvr --env SYS_TZONE=$SYS_TZONE -p $JWT_AUTH_PORT:8080 -v ./JWTAuthSvr:/app -w /app alpine_env:latest
 
 echo "JwtAuthSvr node are up..." 
 
