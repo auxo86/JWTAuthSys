@@ -162,7 +162,7 @@ acllog-max-len 128
 #
 # aclfile /etc/redis/sentinel-users.acl
 
-#requirepass !TomluBangBangBang~
+#requirepass xxxxxxxxx
 #
 # You can configure Sentinel itself to require a password, however when doing
 # so Sentinel will try to authenticate with the same password to all the
